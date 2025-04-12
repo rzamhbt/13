@@ -5,11 +5,15 @@ from sklearn.preprocessing import LabelEncoder
 import torch
 from nltk.corpus import stopwords
 
+# Download required NLTK resources
 nltk.download('punkt')
 nltk.download('stopwords')
 
+# Loads BBC multi-view dataset from directory
 def load_bbc_data(data_dir="data/bbc", max_features=100):
     texts, labels = [], []
+
+    # Iterate through each class folder and read text files
     for label in os.listdir(data_dir):
         class_dir = os.path.join(data_dir, label)
         if os.path.isdir(class_dir):
@@ -18,20 +22,24 @@ def load_bbc_data(data_dir="data/bbc", max_features=100):
                     texts.append(f.read())
                     labels.append(label)
 
+    # Preprocess text (lowercase, remove stopwords, etc.)
     def preprocess(text):
-      tokens = text.lower().split()
-      tokens = [t for t in tokens if t.isalpha() and t not in stopwords.words('english')]
-      return ' '.join(tokens)
+        tokens = text.lower().split()
+        tokens = [t for t in tokens if t.isalpha() and t not in stopwords.words('english')]
+        return ' '.join(tokens)
 
     processed_texts = [preprocess(t) for t in texts]
 
-    # View 1: TF-IDF
+    # TF-IDF View 1: Unigrams
     vec1 = TfidfVectorizer(max_features=max_features)
+
+    # TF-IDF View 2: Bigrams (and unigrams)
     vec2 = TfidfVectorizer(max_features=max_features, ngram_range=(1,2))
 
     x1 = vec1.fit_transform(processed_texts).toarray()
     x2 = vec2.fit_transform(processed_texts).toarray()
 
+    # Encode text labels as integers
     le = LabelEncoder()
     labels = le.fit_transform(labels)
 
